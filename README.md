@@ -1,6 +1,6 @@
 🧾 Descrição sugerida (versão principal — profissional e atrativa)
 
-Nome do projeto (ex: ContractFlow)
+INTERGRIsoft
 Plataforma inteligente de gestão de contratos voltada para empresas que buscam organização, segurança jurídica e automação nos seus processos contratuais.
 
 O sistema permite centralizar contratos, controlar prazos, automatizar renovações, integrar assinaturas digitais e gerar relatórios em tempo real — tudo em um único ambiente.

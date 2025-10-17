@@ -1,0 +1,36 @@
+ generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String    @id @default(uuid())
+  name         String?
+  email        String    @unique
+  passwordHash String
+  contracts    Contract[]
+  createdAt    DateTime  @default(now())
+}
+
+model Contract {
+  id         String         @id @default(uuid())
+  title      String
+  clientName String
+  value      Float?
+  status     ContractStatus @default(NEGOTIATION)
+  ownerId    String
+  owner      User           @relation(fields: [ownerId], references: [id])
+  createdAt  DateTime       @default(now())
+  updatedAt  DateTime       @updatedAt
+}
+
+enum ContractStatus {
+  NEGOTIATION
+  SIGNING
+  ACTIVE
+  COMPLETED
+}

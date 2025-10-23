@@ -1,0 +1,84 @@
+# ===============================
+# 📦 GLOBAL IGNORE (root level)
+# ===============================
+node_modules
+npm-debug.log
+yarn-debug.log
+yarn-error.log
+pnpm-debug.log
+.DS_Store
+*.log
+*.swp
+*.swo
+*.bak
+*.tmp
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Exclude Git and editor configs
+.git
+.gitignore
+.vscode
+.idea
+*.iml
+
+# ===============================
+# 🧠 BACKEND (server)
+# ===============================
+server/node_modules
+server/dist/**/*.map
+server/.env
+server/.DS_Store
+server/npm-debug.log
+server/yarn-debug.log
+server/yarn-error.log
+server/coverage
+server/logs
+server/tmp
+server/tests
+server/__pycache__
+server/.cache
+server/prisma/dev.db
+server/prisma/dev.db-journal
+
+# Do not copy Docker build context leftovers
+server/docker-compose.yml
+server/docker-compose.dev.yml
+
+# ===============================
+# 💻 FRONTEND (client)
+# ===============================
+client/node_modules
+client/.env
+client/.DS_Store
+client/npm-debug.log
+client/yarn-debug.log
+client/yarn-error.log
+client/coverage
+client/build
+client/dist
+client/.cache
+client/.eslintcache
+
+# ===============================
+# 🐳 DOCKER / SYSTEM
+# ===============================
+docker-compose.override.yml
+docker-compose.dev.yml
+docker-compose.debug.yml
+docker-compose.test.yml
+Dockerfile.dev
+Dockerfile.local
+docker-data/
+**/docker-data/
+**/tmp/
+**/.docker/
+
+# ===============================
+# 🧾 MISC
+# ===============================
+Thumbs.db
+ehthumbs.db
+desktop.ini

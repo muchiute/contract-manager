@@ -1,71 +1,152 @@
-import React, { useState } from "react";
-import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
+import React, { useEffect, useState } from "react";
+import axios from "axios";
+import "./Kanban.css";
 
-const initialColumns = {
-  'col1': { id: 'NEGOTIATION', title: 'Negociação', items: [{id:'c1', content:'Contrato A'},{id:'c2', content:'Contrato B'}]},
-  'col2': { id: 'SIGNING', title: 'Assinatura', items: []},
-  'col3': { id: 'ACTIVE', title: 'Execução', items: []},
-  'col4': { id: 'COMPLETED', title: 'Concluído', items: []},
-};
+// Configuração da API dinâmica
+const api = axios.create({
+  baseURL: process.env.REACT_APP_API_URL || "http://localhost:5000",
+});
+
+const STATUSES = [
+  { key: "NEGOTIATION", label: "Negociação" },
+  { key: "SIGNING", label: "Assinatura" },
+  { key: "ACTIVE", label: "Execução" },
+  { key: "COMPLETED", label: "Concluído" },
+];
 
 export default function Kanban() {
-  const [columns, setColumns] = useState(initialColumns);
+  const [contracts, setContracts] = useState([]);
+  const [newContract, setNewContract] = useState({
+    title: "",
+    clientName: "",
+    value: "",
+    description: "",
+  });
+  const [loading, setLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
 
-  const onDragEnd = (result) => {
-    const { source, destination, draggableId } = result;
-    if (!destination) return;
+  // Buscar contratos da API
+  useEffect(() => {
+    fetchContracts();
+  }, []);
 
-    // Copiar colunas
-    const newColumns = { ...columns };
-    const sourceCol = newColumns[source.droppableId];
-    const destCol = newColumns[destination.droppableId];
-
-    // Remover item da coluna de origem
-    const [movedItem] = sourceCol.items.splice(source.index, 1);
-    // Adicionar item na coluna de destino
-    destCol.items.splice(destination.index, 0, movedItem);
-
-    setColumns(newColumns);
-
-    // Aqui você pode fazer a chamada à API para salvar no backend
-    // axios.post(`${process.env.REACT_APP_API_URL}/contracts/${draggableId}/status`, {
-    //   status: destCol.id
-    // });
+  const fetchContracts = async () => {
+    try {
+      const { data } = await api.get("/contracts");
+      setContracts(data);
+    } catch (error) {
+      console.error("Erro ao carregar contratos:", error);
+      setErrorMessage("Falha ao carregar contratos. Verifique a conexão com o servidor.");
+    }
   };
 
+  const handleCreateContract = async (e) => {
+    e.preventDefault();
+    setErrorMessage("");
+
+    if (!newContract.title || !newContract.clientName) {
+      setErrorMessage("Título e Cliente são obrigatórios!");
+      return;
+    }
+
+    try {
+      setLoading(true);
+      await api.post("/contracts", newContract);
+      setNewContract({ title: "", clientName: "", value: "", description: "" });
+      fetchContracts(); // Atualiza o quadro
+    } catch (error) {
+      console.error("Erro ao criar contrato:", error);
+      setErrorMessage("Erro ao criar contrato. Verifique o backend e tente novamente.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDragStart = (e, id) => {
+    e.dataTransfer.setData("contractId", id);
+  };
+
+  const handleDrop = async (e, newStatus) => {
+    const contractId = e.dataTransfer.getData("contractId");
+    try {
+      await api.patch(`/contracts/${contractId}`, { status: newStatus });
+      fetchContracts();
+    } catch (error) {
+      console.error("Erro ao mover contrato:", error);
+      setErrorMessage("Erro ao atualizar o status do contrato.");
+    }
+  };
+
+  const handleDragOver = (e) => e.preventDefault();
+
   return (
-    <div>
-      <h1 className="text-2xl mb-4">Quadro Kanban</h1>
-      <DragDropContext onDragEnd={onDragEnd}>
-        <div className="flex gap-4">
-          {Object.entries(columns).map(([key, col]) => (
-            <div key={key} className="w-1/4 bg-gray-50 p-2 rounded">
-              <h3 className="font-bold mb-2">{col.title}</h3>
-              <Droppable droppableId={key}>
-                {(provided) => (
-                  <div ref={provided.innerRef} {...provided.droppableProps} style={{ minHeight: 200 }}>
-                    {col.items.map((item, index) => (
-                      <Draggable draggableId={item.id} index={index} key={item.id}>
-                        {(provided) => (
-                          <div
-                            ref={provided.innerRef}
-                            {...provided.draggableProps}
-                            {...provided.dragHandleProps}
-                            className="p-3 mb-2 bg-white rounded shadow"
-                          >
-                            {item.content}
-                          </div>
-                        )}
-                      </Draggable>
-                    ))}
-                    {provided.placeholder}
+    <div className="kanban-container">
+      <h2>Gestão de Contratos</h2>
+
+      {/* Mensagem de erro */}
+      {errorMessage && <div className="error-message">{errorMessage}</div>}
+
+      {/* Formulário de criação */}
+      <form className="kanban-form" onSubmit={handleCreateContract}>
+        <input
+          type="text"
+          placeholder="Título"
+          value={newContract.title}
+          onChange={(e) => setNewContract({ ...newContract, title: e.target.value })}
+        />
+        <input
+          type="text"
+          placeholder="Cliente"
+          value={newContract.clientName}
+          onChange={(e) => setNewContract({ ...newContract, clientName: e.target.value })}
+        />
+        <input
+          type="number"
+          placeholder="Valor"
+          value={newContract.value}
+          onChange={(e) => setNewContract({ ...newContract, value: e.target.value })}
+        />
+        <input
+          type="text"
+          placeholder="Descrição"
+          value={newContract.description}
+          onChange={(e) => setNewContract({ ...newContract, description: e.target.value })}
+        />
+        <button type="submit" disabled={loading}>
+          {loading ? "Criando..." : "Criar"}
+        </button>
+      </form>
+
+      {/* Quadro Kanban */}
+      <div className="kanban-board">
+        {STATUSES.map((status) => (
+          <div
+            key={status.key}
+            className="kanban-column"
+            onDrop={(e) => handleDrop(e, status.key)}
+            onDragOver={handleDragOver}
+          >
+            <h3>{status.label}</h3>
+            <div className="kanban-cards">
+              {contracts
+                .filter((c) => c.status === status.key)
+                .map((contract) => (
+                  <div
+                    key={contract.id}
+                    className="kanban-card"
+                    draggable
+                    onDragStart={(e) => handleDragStart(e, contract.id)}
+                  >
+                    <h4>{contract.title}</h4>
+                    <p><b>Cliente:</b> {contract.clientName}</p>
+                    {contract.value && <p><b>Valor:</b> R$ {Number(contract.value).toLocaleString()}</p>}
+                    {contract.description && <p>{contract.description}</p>}
                   </div>
-                )}
-              </Droppable>
+                ))}
             </div>
-          ))}
-        </div>
-      </DragDropContext>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }

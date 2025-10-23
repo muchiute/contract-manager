@@ -1,4 +1,4 @@
- generator client {
+generator client {
   provider = "prisma-client-js"
 }
 
@@ -8,22 +8,34 @@ datasource db {
 }
 
 model User {
-  id           String    @id @default(uuid())
+  id           String     @id @default(uuid())
   name         String?
-  email        String    @unique
+  email        String     @unique
   passwordHash String
-  contracts    Contract[]
-  createdAt    DateTime  @default(now())
+  // Contratos que o usuário criou
+  contracts    Contract[] @relation("OwnedContracts")
+  // Contratos atribuídos a esse usuário
+  assigned     Contract[] @relation("AssignedContracts")
+  createdAt    DateTime   @default(now())
 }
 
 model Contract {
-  id         String         @id @default(uuid())
-  title      String
-  clientName String
-  value      Float?
-  status     ContractStatus @default(NEGOTIATION)
-  ownerId    String
-  owner      User           @relation(fields: [ownerId], references: [id])
+  id          String         @id @default(uuid())
+  title       String
+  clientName  String
+  value       Float?
+  description String?
+  imageUrl    String?
+  status      ContractStatus @default(NEGOTIATION)
+
+  // Dono do contrato
+  ownerId String
+  owner   User @relation("OwnedContracts", fields: [ownerId], references: [id])
+
+  // Usuário designado (opcional)
+  assignedTo String?
+  assignee   User? @relation("AssignedContracts", fields: [assignedTo], references: [id])
+
   createdAt  DateTime       @default(now())
   updatedAt  DateTime       @updatedAt
 }

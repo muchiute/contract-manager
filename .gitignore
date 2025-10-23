@@ -1,5 +1,84 @@
-node_modules
-dist
+# =========================
+# 📦 NODE / GENERAL
+# =========================
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+package-lock.json
 .env
 .env.local
-/mounted
+.env.development
+.env.production
+.env.test
+
+# =========================
+# ⚙️ TYPESCRIPT / BUILD
+# =========================
+dist/
+build/
+.cache/
+*.tsbuildinfo
+
+# =========================
+# 🎨 FRONTEND (React)
+# =========================
+client/node_modules/
+client/.env
+client/.env.local
+client/build/
+client/.parcel-cache/
+client/.next/
+client/.vercel/
+
+# =========================
+# 🧠 BACKEND (Express + Prisma)
+# =========================
+server/node_modules/
+server/dist/
+server/.env
+server/.env.local
+server/prisma/dev.db
+server/prisma/*.sqlite
+server/prisma/migrations/*/README.md
+server/prisma/migrations/*/migration.sql-journal
+server/prisma/*.db-journal
+
+# =========================
+# 🐋 DOCKER / COMPOSE
+# =========================
+docker-compose.override.yml
+docker-compose.dev.yml
+*.pid
+*.seed
+tmp/
+.pgdata/
+pgdata/
+postgres-data/
+docker-data/
+
+# =========================
+# 🧰 VSCODE / IDE / OS
+# =========================
+.vscode/
+.idea/
+*.swp
+*.swo
+*.DS_Store
+Thumbs.db
+
+# =========================
+# 🧪 TESTS / COVERAGE
+# =========================
+coverage/
+.nyc_output/
+jest-test-results.json
+*.lcov
+
+# =========================
+# 🔥 MISC
+# =========================
+*.log
+logs/
+*.tgz
+.DS_Store

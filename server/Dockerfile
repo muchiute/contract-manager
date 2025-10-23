@@ -1,40 +1,41 @@
-# Stage 1: Build
+# -------------------------------
+# STAGE 1: Build da aplicação
+# -------------------------------
 FROM node:20-alpine AS build
 
-# Instalar dependências nativas necessárias
-RUN apk add --no-cache libc6-compat openssl bash
+# Dependências nativas necessárias para bcrypt e Prisma
+RUN apk add --no-cache libc6-compat openssl bash python3 make g++
 
 WORKDIR /usr/src/app
 
-# Copiar package.json e instalar dependências
+# Copiar apenas arquivos de dependências e instalar tudo
 COPY package*.json ./
 RUN npm install
 
-# Copiar todo o backend
+# Copiar o restante do código (src, prisma, etc)
 COPY . .
 
-# Gerar Prisma Client
+# Gerar Prisma Client e compilar o TypeScript
 RUN npx prisma generate
-
-# Compilar TypeScript
 RUN npm run build
 
-# Stage 2: Production
+# -------------------------------
+# STAGE 2: Produção
+# -------------------------------
 FROM node:20-alpine
 
+# Dependências nativas
 RUN apk add --no-cache libc6-compat openssl bash
 
 WORKDIR /usr/src/app
 
-COPY package*.json ./
-RUN npm install --production
-
-# Copiar build e Prisma Client do stage de build
+# Copiar apenas o necessário do estágio de build
+COPY --from=build /usr/src/app/node_modules ./node_modules
 COPY --from=build /usr/src/app/dist ./dist
 COPY --from=build /usr/src/app/prisma ./prisma
-COPY --from=build /usr/src/app/node_modules ./node_modules
+COPY --from=build /usr/src/app/package*.json ./
 
 EXPOSE 5000
 
-# Start da aplicação
-CMD ["node", "dist/index.js"]
+# Rodar migrations e iniciar a API
+CMD ["sh", "-c", "npx prisma migrate deploy && node dist/index.js"]
